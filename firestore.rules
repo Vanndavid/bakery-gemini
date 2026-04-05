@@ -100,11 +100,16 @@ service cloud.firestore {
              isValidUrl(request.resource.data.imageUrl);
     }
 
+    function isValidContactList(contacts) {
+      return contacts is list && contacts.size() <= 20;
+    }
+
     function isValidSettings() {
       return hasRequiredFields(['appName', 'colorScheme']) &&
-             hasOnlyAllowedFields(['appName', 'colorScheme']) &&
+             hasOnlyAllowedFields(['appName', 'colorScheme', 'contacts']) &&
              validStringLength('appName', 1, 100) &&
-             request.resource.data.colorScheme in ['amber', 'rose', 'emerald', 'slate'];
+             request.resource.data.colorScheme in ['amber', 'rose', 'emerald', 'slate'] &&
+             (!('contacts' in request.resource.data) || isValidContactList(request.resource.data.contacts));
     }
 
     // ===============================================================
