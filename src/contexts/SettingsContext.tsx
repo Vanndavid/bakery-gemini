@@ -13,6 +13,9 @@ interface Settings {
   appName: string;
   colorScheme: 'amber' | 'rose' | 'emerald' | 'slate';
   contacts: ContactInfo[];
+  heroImage: string;
+  heroTitle: string;
+  heroSubtitle: string;
 }
 
 interface SettingsContextType {
@@ -27,7 +30,10 @@ const defaultSettings: Settings = {
   contacts: [
     { id: '1', type: 'phone', value: '(02) 1234 5678', enabled: true },
     { id: '2', type: 'email', value: 'hello@friendlybakers.com', enabled: true }
-  ]
+  ],
+  heroImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+  heroTitle: 'Artisan Baking, Crafted with Love',
+  heroSubtitle: 'Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.'
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

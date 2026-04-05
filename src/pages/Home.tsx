@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
 import { Menu } from './Menu';
 import { Gallery } from './Gallery';
+import { useSettings } from '../contexts/SettingsContext';
 
 export function Home() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { settings } = useSettings();
 
   useEffect(() => {
     const target = location.state?.scrollTo;
@@ -34,8 +36,8 @@ export function Home() {
       <section id="home" className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
-            alt="Freshly baked bread" 
+            src={settings.heroImage} 
+            alt="Hero background" 
             className="w-full h-full object-cover opacity-80"
             referrerPolicy="no-referrer"
           />
@@ -43,11 +45,11 @@ export function Home() {
         </div>
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-lg">
-            Artisan Baking, <br/> Crafted with Love
+          <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-lg whitespace-pre-line">
+            {settings.heroTitle}
           </h1>
-          <p className="text-xl md:text-2xl text-primary-50 mb-10 drop-shadow-md max-w-2xl mx-auto">
-            Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.
+          <p className="text-xl md:text-2xl text-primary-50 mb-10 drop-shadow-md max-w-2xl mx-auto whitespace-pre-line">
+            {settings.heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 

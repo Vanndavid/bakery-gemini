@@ -30,7 +30,10 @@ export function Admin() {
   const [settingsForm, setSettingsForm] = useState({ 
     appName: settings.appName, 
     colorScheme: settings.colorScheme,
-    contacts: settings.contacts || []
+    contacts: settings.contacts || [],
+    heroImage: settings.heroImage || '',
+    heroTitle: settings.heroTitle || '',
+    heroSubtitle: settings.heroSubtitle || ''
   });
 
   // Update settings form when settings load
@@ -38,7 +41,10 @@ export function Admin() {
     setSettingsForm({ 
       appName: settings.appName, 
       colorScheme: settings.colorScheme,
-      contacts: settings.contacts || []
+      contacts: settings.contacts || [],
+      heroImage: settings.heroImage || '',
+      heroTitle: settings.heroTitle || '',
+      heroSubtitle: settings.heroSubtitle || ''
     });
   }, [settings]);
 
@@ -169,7 +175,10 @@ export function Admin() {
       await updateSettings({
         appName: settingsForm.appName,
         colorScheme: settingsForm.colorScheme as any,
-        contacts: settingsForm.contacts
+        contacts: settingsForm.contacts,
+        heroImage: settingsForm.heroImage,
+        heroTitle: settingsForm.heroTitle,
+        heroSubtitle: settingsForm.heroSubtitle
       });
       alert('Settings updated successfully!');
     } catch (error) {
@@ -465,6 +474,24 @@ export function Admin() {
                         <option value="emerald">Emerald (Fresh)</option>
                         <option value="slate">Slate (Modern)</option>
                       </select>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8 border-t border-gray-200 pt-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Homepage Hero</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image URL</label>
+                        <input type="url" value={settingsForm.heroImage} onChange={e => setSettingsForm({...settingsForm, heroImage: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" placeholder="https://images.unsplash.com/..." />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Title</label>
+                        <input type="text" value={settingsForm.heroTitle} onChange={e => setSettingsForm({...settingsForm, heroTitle: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Subtitle</label>
+                        <textarea value={settingsForm.heroSubtitle} onChange={e => setSettingsForm({...settingsForm, heroSubtitle: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" rows={3} />
+                      </div>
                     </div>
                   </div>
                   

@@ -106,10 +106,13 @@ service cloud.firestore {
 
     function isValidSettings() {
       return hasRequiredFields(['appName', 'colorScheme']) &&
-             hasOnlyAllowedFields(['appName', 'colorScheme', 'contacts']) &&
+             hasOnlyAllowedFields(['appName', 'colorScheme', 'contacts', 'heroImage', 'heroTitle', 'heroSubtitle']) &&
              validStringLength('appName', 1, 100) &&
              request.resource.data.colorScheme in ['amber', 'rose', 'emerald', 'slate'] &&
-             (!('contacts' in request.resource.data) || isValidContactList(request.resource.data.contacts));
+             (!('contacts' in request.resource.data) || isValidContactList(request.resource.data.contacts)) &&
+             (!('heroImage' in request.resource.data) || isValidUrl(request.resource.data.heroImage)) &&
+             (!('heroTitle' in request.resource.data) || validStringLength('heroTitle', 1, 100)) &&
+             (!('heroSubtitle' in request.resource.data) || validStringLength('heroSubtitle', 1, 500));
     }
 
     // ===============================================================
