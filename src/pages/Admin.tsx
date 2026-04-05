@@ -42,6 +42,16 @@ export function Admin() {
     });
   }, [settings]);
 
+  // Live preview of color scheme
+  useEffect(() => {
+    if (activeTab === 'settings') {
+      document.body.className = `theme-${settingsForm.colorScheme}`;
+    }
+    return () => {
+      document.body.className = `theme-${settings.colorScheme}`;
+    };
+  }, [settingsForm.colorScheme, activeTab, settings.colorScheme]);
+
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (!user) {
