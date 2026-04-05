@@ -1,0 +1,103 @@
+import { Link } from 'react-router-dom';
+import { ArrowRight, Star } from 'lucide-react';
+import { Menu } from './Menu';
+import { Gallery } from './Gallery';
+import React, { useEffect } from 'react';
+
+export function Home() {
+  useEffect(() => {
+    if (window.location.hash) {
+      const element = document.querySelector(window.location.hash);
+      if (element) {
+        setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
+    }
+  }, []);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    e.preventDefault();
+    const element = document.querySelector(hash);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      window.history.pushState(null, '', hash);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-amber-50/50">
+      {/* Hero Section */}
+      <section id="home" className="relative h-[80vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
+            alt="Freshly baked bread" 
+            className="w-full h-full object-cover opacity-80"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+        
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-lg">
+            Artisan Baking, <br/> Crafted with Love
+          </h1>
+          <p className="text-xl md:text-2xl text-amber-50 mb-10 drop-shadow-md max-w-2xl mx-auto">
+            Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a 
+              href="#menu"
+              onClick={(e) => scrollToSection(e, '#menu')}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors flex items-center justify-center gap-2"
+            >
+              Explore Our Menu <ArrowRight className="w-5 h-5" />
+            </a>
+            <a 
+              href="#gallery"
+              onClick={(e) => scrollToSection(e, '#gallery')}
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border-2 border-white text-white px-8 py-4 rounded-full font-medium text-lg transition-colors"
+            >
+              View Gallery
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-4 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+              <Star className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Premium Ingredients</h3>
+            <p className="text-gray-600 leading-relaxed">
+              We source only the finest organic flour, farm-fresh eggs, and rich European butter for our creations.
+            </p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+              <Star className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Baked Fresh Daily</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Our ovens start at 3 AM every morning to ensure you get the freshest, warmest baked goods possible.
+            </p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+              <Star className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Custom Orders</h3>
+            <p className="text-gray-600 leading-relaxed">
+              From wedding cakes to corporate events, we create custom masterpieces tailored to your special occasions.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <Menu />
+      <Gallery />
+    </div>
+  );
+}

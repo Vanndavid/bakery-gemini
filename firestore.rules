@@ -1,0 +1,116 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: menu
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, max 100 chars)
+    //   - description: string (optional, max 500 chars)
+    //   - price: number (required, positive)
+    //   - category: string (required, max 50 chars)
+    //   - imageUrl: string (optional, valid URL)
+    //
+    // Collection: gallery
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, max 100 chars)
+    //   - description: string (optional, max 500 chars)
+    //   - imageUrl: string (required, valid URL)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == "vanndavidteng@gmail.com" && request.auth.token.email_verified == true;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidOptionalUrl(field) {
+      return !(field in request.resource.data) || isValidUrl(request.resource.data[field]);
+    }
+
+    function isPositive(field) {
+      return request.resource.data[field] is number && request.resource.data[field] >= 0;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidMenuItem() {
+      return hasRequiredFields(['name', 'price', 'category']) &&
+             hasOnlyAllowedFields(['name', 'description', 'price', 'category', 'imageUrl']) &&
+             validStringLength('name', 1, 100) &&
+             isValidOptionalString('description', 0, 500) &&
+             isPositive('price') &&
+             validStringLength('category', 1, 50) &&
+             isValidOptionalUrl('imageUrl');
+    }
+
+    function isValidGalleryImage() {
+      return hasRequiredFields(['title', 'imageUrl']) &&
+             hasOnlyAllowedFields(['title', 'description', 'imageUrl']) &&
+             validStringLength('title', 1, 100) &&
+             isValidOptionalString('description', 0, 500) &&
+             isValidUrl(request.resource.data.imageUrl);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /menu/{menuId} {
+      // Anyone can read the menu
+      allow read: if true;
+      // Only admin can create/update/delete menu items
+      allow create: if isAdmin() && isValidMenuItem();
+      allow update: if isAdmin() && isValidMenuItem();
+      allow delete: if isAdmin();
+    }
+
+    match /gallery/{imageId} {
+      // Anyone can read the gallery
+      allow read: if true;
+      // Only admin can create/update/delete gallery images
+      allow create: if isAdmin() && isValidGalleryImage();
+      allow update: if isAdmin() && isValidGalleryImage();
+      allow delete: if isAdmin();
+    }
+  }
+}

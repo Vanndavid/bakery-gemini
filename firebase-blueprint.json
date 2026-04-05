@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "MenuItem": {
+      "title": "Menu Item",
+      "description": "An item on the bakery menu.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the menu item."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the menu item."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the menu item."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the menu item (e.g., Bread, Pastry, Cake)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the menu item image."
+        }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "GalleryImage": {
+      "title": "Gallery Image",
+      "description": "An image in the bakery gallery.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the image."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the gallery image."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the image."
+        }
+      },
+      "required": ["title", "imageUrl"]
+    }
+  },
+  "firestore": {
+    "/menu/{menuId}": {
+      "schema": {
+        "$ref": "#/entities/MenuItem"
+      },
+      "description": "Collection of bakery menu items."
+    },
+    "/gallery/{imageId}": {
+      "schema": {
+        "$ref": "#/entities/GalleryImage"
+      },
+      "description": "Collection of bakery gallery images."
+    }
+  }
+}

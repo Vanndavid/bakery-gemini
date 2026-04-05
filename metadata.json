@@ -1,0 +1,5 @@
+{
+  "name": "Bakery Website",
+  "description": "A bakery website with an admin panel to manage the menu and gallery.",
+  "requestFramePermissions": []
+}
