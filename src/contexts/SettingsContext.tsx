@@ -11,7 +11,7 @@ export interface ContactInfo {
 
 interface Settings {
   appName: string;
-  colorScheme: 'primary' | 'rose' | 'emerald' | 'slate';
+  colorScheme: 'amber' | 'rose' | 'emerald' | 'slate';
   contacts: ContactInfo[];
 }
 
@@ -23,7 +23,7 @@ interface SettingsContextType {
 
 const defaultSettings: Settings = {
   appName: 'The Friendly Bakers',
-  colorScheme: 'primary',
+  colorScheme: 'amber',
   contacts: [
     { id: '1', type: 'phone', value: '(02) 1234 5678', enabled: true },
     { id: '2', type: 'email', value: 'hello@friendlybakers.com', enabled: true }
