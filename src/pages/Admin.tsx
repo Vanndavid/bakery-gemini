@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { db, auth, handleFirestoreError, OperationType } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, auth, storage, handleFirestoreError, OperationType } from '../firebase';
 import { MenuItem, GalleryImage } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon } from 'lucide-react';
+import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon, Upload } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
 export function Admin() {
@@ -11,6 +12,7 @@ export function Admin() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
 
@@ -64,6 +66,29 @@ export function Admin() {
   const handleLogout = async () => {
     await auth.signOut();
     navigate('/');
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, formType: 'menu' | 'gallery') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, `${formType}/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      
+      if (formType === 'menu') {
+        setMenuForm({ ...menuForm, imageUrl: url });
+      } else {
+        setGalleryForm({ ...galleryForm, imageUrl: url });
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const resetMenuForm = () => {
@@ -252,8 +277,15 @@ export function Admin() {
                       <input required type="text" value={menuForm.category} onChange={e => setMenuForm({...menuForm, category: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                      <input type="url" value={menuForm.imageUrl} onChange={e => setMenuForm({...menuForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                      <div className="flex gap-2">
+                        <input type="url" placeholder="Or paste URL here" value={menuForm.imageUrl} onChange={e => setMenuForm({...menuForm, imageUrl: e.target.value})} className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                        <label className="cursor-pointer bg-primary-100 text-primary-700 px-4 py-2 rounded-md hover:bg-primary-200 flex items-center justify-center transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploading ? 'Uploading...' : 'Upload'}
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'menu')} disabled={uploading} />
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -320,8 +352,15 @@ export function Admin() {
                       <input required type="text" value={galleryForm.title} onChange={e => setGalleryForm({...galleryForm, title: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-                      <input required type="url" value={galleryForm.imageUrl} onChange={e => setGalleryForm({...galleryForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Image *</label>
+                      <div className="flex gap-2">
+                        <input required type="url" placeholder="Or paste URL here" value={galleryForm.imageUrl} onChange={e => setGalleryForm({...galleryForm, imageUrl: e.target.value})} className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                        <label className="cursor-pointer bg-primary-100 text-primary-700 px-4 py-2 rounded-md hover:bg-primary-200 flex items-center justify-center transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploading ? 'Uploading...' : 'Upload'}
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'gallery')} disabled={uploading} />
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <div>
