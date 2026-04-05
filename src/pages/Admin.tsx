@@ -92,7 +92,7 @@ export function Admin() {
     navigate('/');
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, formType: 'menu' | 'gallery') => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, formType: 'menu' | 'gallery' | 'settings') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -104,8 +104,10 @@ export function Admin() {
       
       if (formType === 'menu') {
         setMenuForm({ ...menuForm, imageUrl: url });
-      } else {
+      } else if (formType === 'gallery') {
         setGalleryForm({ ...galleryForm, imageUrl: url });
+      } else if (formType === 'settings') {
+        setSettingsForm({ ...settingsForm, heroImage: url });
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -481,8 +483,15 @@ export function Admin() {
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Homepage Hero</h4>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image URL</label>
-                        <input type="url" value={settingsForm.heroImage} onChange={e => setSettingsForm({...settingsForm, heroImage: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" placeholder="https://images.unsplash.com/..." />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image</label>
+                        <div className="flex gap-2">
+                          <input type="url" value={settingsForm.heroImage} onChange={e => setSettingsForm({...settingsForm, heroImage: e.target.value})} className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" placeholder="https://images.unsplash.com/..." />
+                          <label className="cursor-pointer bg-primary-100 text-primary-700 px-4 py-2 rounded-md hover:bg-primary-200 flex items-center justify-center transition-colors">
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploading ? 'Uploading...' : 'Upload'}
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, 'settings')} disabled={uploading} />
+                          </label>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Hero Title</label>
