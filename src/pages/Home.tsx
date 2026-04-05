@@ -29,7 +29,7 @@ export function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-amber-50/50">
+    <div className="min-h-screen bg-primary-50/50">
       {/* Hero Section */}
       <section id="home" className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -46,13 +46,13 @@ export function Home() {
           <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-lg">
             Artisan Baking, <br/> Crafted with Love
           </h1>
-          <p className="text-xl md:text-2xl text-amber-50 mb-10 drop-shadow-md max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-primary-50 mb-10 drop-shadow-md max-w-2xl mx-auto">
             Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={(e) => scrollToSection(e, 'menu')}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors flex items-center justify-center gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors flex items-center justify-center gap-2"
             >
               Explore Our Menu <ArrowRight className="w-5 h-5" />
             </button>
@@ -70,28 +70,28 @@ export function Home() {
       <section className="py-20 px-4 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-6 text-primary-700">
               <Star className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Premium Ingredients</h3>
+            <h3 className="text-2xl font-serif font-bold text-primary-900 mb-4">Premium Ingredients</h3>
             <p className="text-gray-600 leading-relaxed">
               We source only the finest organic flour, farm-fresh eggs, and rich European butter for our creations.
             </p>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-6 text-primary-700">
               <Star className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Baked Fresh Daily</h3>
+            <h3 className="text-2xl font-serif font-bold text-primary-900 mb-4">Baked Fresh Daily</h3>
             <p className="text-gray-600 leading-relaxed">
               Our ovens start at 3 AM every morning to ensure you get the freshest, warmest baked goods possible.
             </p>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6 text-amber-700">
+            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-6 text-primary-700">
               <Star className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-serif font-bold text-amber-900 mb-4">Custom Orders</h3>
+            <h3 className="text-2xl font-serif font-bold text-primary-900 mb-4">Custom Orders</h3>
             <p className="text-gray-600 leading-relaxed">
               From wedding cakes to corporate events, we create custom masterpieces tailored to your special occasions.
             </p>

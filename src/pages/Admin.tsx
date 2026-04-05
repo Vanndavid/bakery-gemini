@@ -3,14 +3,16 @@ import { collection, onSnapshot, query, addDoc, deleteDoc, doc, updateDoc } from
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { MenuItem, GalleryImage } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee } from 'lucide-react';
+import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 export function Admin() {
-  const [activeTab, setActiveTab] = useState<'menu' | 'gallery'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'settings'>('menu');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { settings, updateSettings } = useSettings();
 
   // Form states
   const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +23,14 @@ export function Admin() {
   
   // Gallery Form
   const [galleryForm, setGalleryForm] = useState({ title: '', description: '', imageUrl: '' });
+
+  // Settings Form
+  const [settingsForm, setSettingsForm] = useState({ appName: settings.appName, colorScheme: settings.colorScheme });
+
+  // Update settings form when settings load
+  useEffect(() => {
+    setSettingsForm({ appName: settings.appName, colorScheme: settings.colorScheme });
+  }, [settings]);
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -110,6 +120,19 @@ export function Admin() {
     }
   };
 
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateSettings({
+        appName: settingsForm.appName,
+        colorScheme: settingsForm.colorScheme as any
+      });
+      alert('Settings updated successfully!');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'settings');
+    }
+  };
+
   const deleteMenu = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this menu item?')) {
       try {
@@ -156,8 +179,8 @@ export function Admin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-amber-50/50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700"></div>
+      <div className="min-h-screen flex items-center justify-center bg-primary-50/50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-700"></div>
       </div>
     );
   }
@@ -166,13 +189,13 @@ export function Admin() {
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <div className="w-full md:w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
-        <h2 className="text-2xl font-serif font-bold text-amber-900 mb-8">Admin Panel</h2>
+        <h2 className="text-2xl font-serif font-bold text-primary-900 mb-8">Admin Panel</h2>
         
         <nav className="space-y-2 flex-1">
           <button
             onClick={() => { setActiveTab('menu'); resetMenuForm(); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
-              activeTab === 'menu' ? 'bg-amber-100 text-amber-900' : 'text-gray-600 hover:bg-gray-100'
+              activeTab === 'menu' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             <Coffee className="w-5 h-5" /> Menu Items
@@ -180,10 +203,18 @@ export function Admin() {
           <button
             onClick={() => { setActiveTab('gallery'); resetGalleryForm(); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
-              activeTab === 'gallery' ? 'bg-amber-100 text-amber-900' : 'text-gray-600 hover:bg-gray-100'
+              activeTab === 'gallery' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             <ImageIcon className="w-5 h-5" /> Gallery
+          </button>
+          <button
+            onClick={() => { setActiveTab('settings'); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
+              activeTab === 'settings' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <SettingsIcon className="w-5 h-5" /> Settings
           </button>
         </nav>
 
@@ -203,37 +234,37 @@ export function Admin() {
               {/* Menu Form */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  {isEditing ? <Edit2 className="w-5 h-5 text-amber-600" /> : <Plus className="w-5 h-5 text-amber-600" />}
+                  {isEditing ? <Edit2 className="w-5 h-5 text-primary-600" /> : <Plus className="w-5 h-5 text-primary-600" />}
                   {isEditing ? 'Edit Menu Item' : 'Add New Menu Item'}
                 </h3>
                 <form onSubmit={handleMenuSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                      <input required type="text" value={menuForm.name} onChange={e => setMenuForm({...menuForm, name: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input required type="text" value={menuForm.name} onChange={e => setMenuForm({...menuForm, name: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Price ($) *</label>
-                      <input required type="number" step="0.01" min="0" value={menuForm.price} onChange={e => setMenuForm({...menuForm, price: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input required type="number" step="0.01" min="0" value={menuForm.price} onChange={e => setMenuForm({...menuForm, price: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                      <input required type="text" value={menuForm.category} onChange={e => setMenuForm({...menuForm, category: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input required type="text" value={menuForm.category} onChange={e => setMenuForm({...menuForm, category: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                      <input type="url" value={menuForm.imageUrl} onChange={e => setMenuForm({...menuForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input type="url" value={menuForm.imageUrl} onChange={e => setMenuForm({...menuForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea rows={3} value={menuForm.description} onChange={e => setMenuForm({...menuForm, description: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"></textarea>
+                    <textarea rows={3} value={menuForm.description} onChange={e => setMenuForm({...menuForm, description: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"></textarea>
                   </div>
                   <div className="flex justify-end gap-3">
                     {isEditing && (
                       <button type="button" onClick={resetMenuForm} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium">Cancel</button>
                     )}
-                    <button type="submit" className="px-4 py-2 text-white bg-amber-600 hover:bg-amber-700 rounded-md font-medium">
+                    <button type="submit" className="px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md font-medium">
                       {isEditing ? 'Update Item' : 'Add Item'}
                     </button>
                   </div>
@@ -265,7 +296,7 @@ export function Admin() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.price.toFixed(2)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button onClick={() => editMenu(item)} className="text-amber-600 hover:text-amber-900 mr-4"><Edit2 className="w-4 h-4 inline" /></button>
+                          <button onClick={() => editMenu(item)} className="text-primary-600 hover:text-primary-900 mr-4"><Edit2 className="w-4 h-4 inline" /></button>
                           <button onClick={() => deleteMenu(item.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-4 h-4 inline" /></button>
                         </td>
                       </tr>
@@ -274,34 +305,34 @@ export function Admin() {
                 </table>
               </div>
             </>
-          ) : (
+          ) : activeTab === 'gallery' ? (
             <>
               {/* Gallery Form */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  {isEditing ? <Edit2 className="w-5 h-5 text-amber-600" /> : <Plus className="w-5 h-5 text-amber-600" />}
+                  {isEditing ? <Edit2 className="w-5 h-5 text-primary-600" /> : <Plus className="w-5 h-5 text-primary-600" />}
                   {isEditing ? 'Edit Gallery Image' : 'Add New Image'}
                 </h3>
                 <form onSubmit={handleGallerySubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                      <input required type="text" value={galleryForm.title} onChange={e => setGalleryForm({...galleryForm, title: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input required type="text" value={galleryForm.title} onChange={e => setGalleryForm({...galleryForm, title: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Image URL *</label>
-                      <input required type="url" value={galleryForm.imageUrl} onChange={e => setGalleryForm({...galleryForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" />
+                      <input required type="url" value={galleryForm.imageUrl} onChange={e => setGalleryForm({...galleryForm, imageUrl: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea rows={3} value={galleryForm.description} onChange={e => setGalleryForm({...galleryForm, description: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"></textarea>
+                    <textarea rows={3} value={galleryForm.description} onChange={e => setGalleryForm({...galleryForm, description: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"></textarea>
                   </div>
                   <div className="flex justify-end gap-3">
                     {isEditing && (
                       <button type="button" onClick={resetGalleryForm} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md font-medium">Cancel</button>
                     )}
-                    <button type="submit" className="px-4 py-2 text-white bg-amber-600 hover:bg-amber-700 rounded-md font-medium">
+                    <button type="submit" className="px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md font-medium">
                       {isEditing ? 'Update Image' : 'Add Image'}
                     </button>
                   </div>
@@ -318,14 +349,45 @@ export function Admin() {
                       {item.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>}
                     </div>
                     <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => editGallery(item)} className="p-2 bg-white rounded-full shadow hover:bg-amber-50 text-amber-600"><Edit2 className="w-4 h-4" /></button>
+                      <button onClick={() => editGallery(item)} className="p-2 bg-white rounded-full shadow hover:bg-primary-50 text-primary-600"><Edit2 className="w-4 h-4" /></button>
                       <button onClick={() => deleteGallery(item.id)} className="p-2 bg-white rounded-full shadow hover:bg-red-50 text-red-600"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 ))}
               </div>
             </>
-          )}
+          ) : activeTab === 'settings' ? (
+            <>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <SettingsIcon className="w-5 h-5 text-primary-600" />
+                  Global Settings
+                </h3>
+                <form onSubmit={handleSettingsSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bakery Name *</label>
+                      <input required type="text" value={settingsForm.appName} onChange={e => setSettingsForm({...settingsForm, appName: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Color Scheme *</label>
+                      <select value={settingsForm.colorScheme} onChange={e => setSettingsForm({...settingsForm, colorScheme: e.target.value as any})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500">
+                        <option value="amber">Amber (Warm)</option>
+                        <option value="rose">Rose (Sweet)</option>
+                        <option value="emerald">Emerald (Fresh)</option>
+                        <option value="slate">Slate (Modern)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button type="submit" className="px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md font-medium">
+                      Save Settings
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
     </div>

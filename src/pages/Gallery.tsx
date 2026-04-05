@@ -28,7 +28,7 @@ export function Gallery() {
   if (loading) {
     return (
       <section id="gallery" className="py-20 flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-700"></div>
       </section>
     );
   }
@@ -37,7 +37,7 @@ export function Gallery() {
     <section id="gallery" className="bg-white py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-amber-900 mb-4">Our Gallery</h1>
+          <h1 className="text-4xl md:text-5xl font-serif font-bold text-primary-900 mb-4">Our Gallery</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             A visual feast of our finest creations, from daily bakes to custom celebration cakes.
           </p>

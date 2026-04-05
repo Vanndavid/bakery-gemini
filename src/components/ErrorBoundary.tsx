@@ -35,8 +35,8 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-amber-50 p-4">
-          <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-amber-200">
+        <div className="min-h-screen flex items-center justify-center bg-primary-50 p-4">
+          <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-primary-200">
             <h2 className="text-2xl font-bold text-red-600 mb-4">Oops, something went wrong!</h2>
             <p className="text-gray-700 mb-4">
               We encountered an error while loading this page.
@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {this.state.errorMessage}
             </div>
             <button
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded transition-colors"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded transition-colors"
               onClick={() => window.location.reload()}
             >
               Reload Page

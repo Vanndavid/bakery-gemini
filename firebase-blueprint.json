@@ -47,9 +47,32 @@
         }
       },
       "required": ["title", "imageUrl"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application settings.",
+      "type": "object",
+      "properties": {
+        "appName": {
+          "type": "string",
+          "description": "The name of the application."
+        },
+        "colorScheme": {
+          "type": "string",
+          "description": "The color scheme of the application.",
+          "enum": ["amber", "rose", "emerald", "slate"]
+        }
+      },
+      "required": ["appName", "colorScheme"]
     }
   },
   "firestore": {
+    "/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/Settings"
+      },
+      "description": "Global application settings. Usually just one document 'global'."
+    },
     "/menu/{menuId}": {
       "schema": {
         "$ref": "#/entities/MenuItem"

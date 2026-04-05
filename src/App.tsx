@@ -9,12 +9,14 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Admin } from './pages/Admin';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 export default function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <div className="min-h-screen flex flex-col">
+      <SettingsProvider>
+        <Router>
+          <div className="min-h-screen flex flex-col">
           <Routes>
             <Route path="/admin" element={null} />
             <Route path="/login" element={null} />
@@ -29,6 +31,7 @@ export default function App() {
           </main>
         </div>
       </Router>
+      </SettingsProvider>
     </ErrorBoundary>
   );
 }
