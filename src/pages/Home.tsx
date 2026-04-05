@@ -1,25 +1,30 @@
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
 import { Menu } from './Menu';
 import { Gallery } from './Gallery';
-import React, { useEffect } from 'react';
 
 export function Home() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (window.location.hash) {
-      const element = document.querySelector(window.location.hash);
+    const target = location.state?.scrollTo;
+    if (target) {
+      const element = document.getElementById(target);
       if (element) {
         setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 100);
       }
+      // Clear the state so it doesn't scroll again on re-render
+      navigate('.', { replace: true, state: {} });
     }
-  }, []);
+  }, [location, navigate]);
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+  const scrollToSection = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
     e.preventDefault();
-    const element = document.querySelector(hash);
+    const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      window.history.pushState(null, '', hash);
     }
   };
 
@@ -45,20 +50,18 @@ export function Home() {
             Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="#menu"
-              onClick={(e) => scrollToSection(e, '#menu')}
+            <button 
+              onClick={(e) => scrollToSection(e, 'menu')}
               className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors flex items-center justify-center gap-2"
             >
               Explore Our Menu <ArrowRight className="w-5 h-5" />
-            </a>
-            <a 
-              href="#gallery"
-              onClick={(e) => scrollToSection(e, '#gallery')}
+            </button>
+            <button 
+              onClick={(e) => scrollToSection(e, 'gallery')}
               className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border-2 border-white text-white px-8 py-4 rounded-full font-medium text-lg transition-colors"
             >
               View Gallery
-            </a>
+            </button>
           </div>
         </div>
       </section>
