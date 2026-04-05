@@ -27,11 +27,19 @@ export function Admin() {
   const [galleryForm, setGalleryForm] = useState({ title: '', description: '', imageUrl: '' });
 
   // Settings Form
-  const [settingsForm, setSettingsForm] = useState({ appName: settings.appName, colorScheme: settings.colorScheme });
+  const [settingsForm, setSettingsForm] = useState({ 
+    appName: settings.appName, 
+    colorScheme: settings.colorScheme,
+    contacts: settings.contacts || []
+  });
 
   // Update settings form when settings load
   useEffect(() => {
-    setSettingsForm({ appName: settings.appName, colorScheme: settings.colorScheme });
+    setSettingsForm({ 
+      appName: settings.appName, 
+      colorScheme: settings.colorScheme,
+      contacts: settings.contacts || []
+    });
   }, [settings]);
 
   useEffect(() => {
@@ -150,12 +158,35 @@ export function Admin() {
     try {
       await updateSettings({
         appName: settingsForm.appName,
-        colorScheme: settingsForm.colorScheme as any
+        colorScheme: settingsForm.colorScheme as any,
+        contacts: settingsForm.contacts
       });
       alert('Settings updated successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'settings');
     }
+  };
+
+  const addContact = () => {
+    setSettingsForm({
+      ...settingsForm,
+      contacts: [
+        ...settingsForm.contacts,
+        { id: Date.now().toString(), type: 'phone', value: '', enabled: true }
+      ]
+    });
+  };
+
+  const updateContact = (index: number, field: string, value: any) => {
+    const newContacts = [...settingsForm.contacts];
+    newContacts[index] = { ...newContacts[index], [field]: value };
+    setSettingsForm({ ...settingsForm, contacts: newContacts });
+  };
+
+  const removeContact = (index: number) => {
+    const newContacts = [...settingsForm.contacts];
+    newContacts.splice(index, 1);
+    setSettingsForm({ ...settingsForm, contacts: newContacts });
   };
 
   const deleteMenu = async (id: string) => {
@@ -214,7 +245,15 @@ export function Admin() {
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <div className="w-full md:w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
-        <h2 className="text-2xl font-serif font-bold text-primary-900 mb-8">Admin Panel</h2>
+        <button 
+          onClick={() => navigate('/')} 
+          className="text-left hover:opacity-80 transition-opacity mb-8"
+        >
+          <h2 className="text-2xl font-serif font-bold text-primary-900 flex items-center gap-2">
+            <Coffee className="w-6 h-6" />
+            Admin Panel
+          </h2>
+        </button>
         
         <nav className="space-y-2 flex-1">
           <button
@@ -418,7 +457,61 @@ export function Admin() {
                       </select>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3">
+                  
+                  <div className="mt-8 border-t border-gray-200 pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Contact Information</h4>
+                      <button type="button" onClick={addContact} className="text-sm flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium">
+                        <Plus className="w-4 h-4" /> Add Contact
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {settingsForm.contacts.map((contact, index) => (
+                        <div key={contact.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                          <select 
+                            value={contact.type} 
+                            onChange={(e) => updateContact(index, 'type', e.target.value)}
+                            className="p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-white"
+                          >
+                            <option value="phone">Phone</option>
+                            <option value="email">Email</option>
+                          </select>
+                          
+                          <input 
+                            type="text" 
+                            value={contact.value} 
+                            onChange={(e) => updateContact(index, 'value', e.target.value)}
+                            placeholder={contact.type === 'phone' ? 'e.g. (02) 1234 5678' : 'e.g. hello@bakery.com'}
+                            className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 bg-white"
+                          />
+                          
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={contact.enabled} 
+                              onChange={(e) => updateContact(index, 'enabled', e.target.checked)}
+                              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-gray-600">Visible</span>
+                          </label>
+                          
+                          <button 
+                            type="button" 
+                            onClick={() => removeContact(index)}
+                            className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      {settingsForm.contacts.length === 0 && (
+                        <p className="text-sm text-gray-500 text-center py-4">No contact information added yet.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-6">
                     <button type="submit" className="px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-md font-medium">
                       Save Settings
                     </button>

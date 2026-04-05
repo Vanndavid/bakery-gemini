@@ -2,9 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
+export interface ContactInfo {
+  id: string;
+  type: 'phone' | 'email';
+  value: string;
+  enabled: boolean;
+}
+
 interface Settings {
   appName: string;
   colorScheme: 'primary' | 'rose' | 'emerald' | 'slate';
+  contacts: ContactInfo[];
 }
 
 interface SettingsContextType {
@@ -16,6 +24,10 @@ interface SettingsContextType {
 const defaultSettings: Settings = {
   appName: 'The Friendly Bakers',
   colorScheme: 'primary',
+  contacts: [
+    { id: '1', type: 'phone', value: '(02) 1234 5678', enabled: true },
+    { id: '2', type: 'email', value: 'hello@friendlybakers.com', enabled: true }
+  ]
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -29,7 +41,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       doc(db, 'settings', 'global'),
       (docSnap) => {
         if (docSnap.exists()) {
-          setSettings(docSnap.data() as Settings);
+          const data = docSnap.data();
+          setSettings({
+            ...defaultSettings,
+            ...data,
+            contacts: data.contacts || defaultSettings.contacts
+          });
         } else {
           // If no settings exist yet, we just use the default
           setSettings(defaultSettings);

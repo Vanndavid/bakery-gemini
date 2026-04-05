@@ -5,6 +5,7 @@
 
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Admin } from './pages/Admin';
@@ -29,6 +30,11 @@ export default function App() {
               <Route path="/admin" element={<Admin />} />
             </Routes>
           </main>
+          <Routes>
+            <Route path="/admin" element={null} />
+            <Route path="/login" element={null} />
+            <Route path="*" element={<Footer />} />
+          </Routes>
         </div>
       </Router>
       </SettingsProvider>
