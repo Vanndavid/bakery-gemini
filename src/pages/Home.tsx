@@ -9,7 +9,7 @@ export function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings } = useSettings();
-
+  const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     const target = location.state?.scrollTo;
     if (target) {
