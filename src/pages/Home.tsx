@@ -8,7 +8,7 @@ import { useSettings } from '../contexts/SettingsContext';
 export function Home() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { settings. loading } = useSettings();
+  const { settings, loading } = useSettings();
 
   useEffect(() => {
     const target = location.state?.scrollTo;
