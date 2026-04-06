@@ -8,7 +8,7 @@ import { useSettings } from '../contexts/SettingsContext';
 export function Home() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings. loading } = useSettings();
 
   useEffect(() => {
     const target = location.state?.scrollTo;
@@ -30,6 +30,9 @@ export function Home() {
     }
   };
 
+  if (loading) {
+    return <div className="absolute inset-0 bg-slate-900 animate-pulse" />;
+  }
   return (
     <div className="min-h-screen bg-primary-50/50">
       {/* Hero Section */}
