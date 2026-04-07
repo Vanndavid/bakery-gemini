@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Star, Truck } from 'lucide-react';
 import { Menu } from './Menu';
 import { Gallery } from './Gallery';
 import { useSettings } from '../contexts/SettingsContext';
@@ -72,22 +72,42 @@ export function Home() {
               View Gallery
             </button>
           </div>
-          <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-center">
+        </div>
+      </section>
+
+      <section className="py-16 px-4">
+        <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-lg border border-primary-100 p-8 md:p-10">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-900 text-center mb-8">
+            Order Now
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <a
               href={doorDashUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors text-center"
+              className="group bg-red-50 hover:bg-red-100 border border-red-200 rounded-2xl px-6 py-5 transition-colors flex items-center gap-4"
             >
-              Order on DoorDash
+              <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0">
+                <Truck className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-red-700">DoorDash</p>
+                <p className="text-lg font-semibold text-red-900 group-hover:underline">Order Pickup</p>
+              </div>
             </a>
             <a
               href={uberEatsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors text-center"
+              className="group bg-green-50 hover:bg-green-100 border border-green-200 rounded-2xl px-6 py-5 transition-colors flex items-center gap-4"
             >
-              Order on Uber Eats
+              <div className="w-12 h-12 rounded-xl bg-green-600 text-white flex items-center justify-center shrink-0">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-green-700">Uber Eats</p>
+                <p className="text-lg font-semibold text-green-900 group-hover:underline">Order Pickup</p>
+              </div>
             </a>
           </div>
         </div>
