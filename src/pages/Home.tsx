@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
 import { Menu } from './Menu';
 import { Gallery } from './Gallery';
@@ -10,6 +10,10 @@ export function Home() {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const [isLoaded, setIsLoaded] = useState(false);
+  const doorDashUrl =
+    'https://doordash.com/store/the-friendly-bakers-lurnea-2235979/?utm_campaign=gpa&pickup=true&rwg_token=AFd1xnGzWZwz67y685rHR0WGnUfZTJ92s3dA_ZxA1n7auAdtxhphWGhs3T_f7y9yUpO1XgYjfH6qScVUrxBtbSL2kWPVAQGSKQ%3D%3D';
+  const uberEatsUrl =
+    'https://www.ubereats.com/au/store/the-friendly-bakers/W514eC0IXiGjs_t1Y7edeA?diningMode=PICKUP&utm_campaign=CM2508147-search-free-nonbrand-google-pas_e_all_acq_Global&utm_medium=search-free-nonbrand&utm_source=google-pas';
   useEffect(() => {
     const target = location.state?.scrollTo;
     if (target) {
@@ -67,6 +71,24 @@ export function Home() {
             >
               View Gallery
             </button>
+          </div>
+          <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href={doorDashUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors text-center"
+            >
+              Order on DoorDash
+            </a>
+            <a
+              href={uberEatsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-medium text-lg transition-colors text-center"
+            >
+              Order on Uber Eats
+            </a>
           </div>
         </div>
       </section>
