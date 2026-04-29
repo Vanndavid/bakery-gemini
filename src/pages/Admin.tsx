@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage, handleFirestoreError, OperationType } from '../firebase';
-import { MenuItem, GalleryImage } from '../types';
+import { MenuItem, GalleryImage, Sale } from '../types';
+import { AdminPOS } from '../components/AdminPOS';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon, Upload } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
 export function Admin() {
-  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'settings'>('menu');
+  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'settings' | 'pos'>('menu');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
@@ -80,10 +82,18 @@ export function Admin() {
       setGalleryImages(items);
     }, (error) => handleFirestoreError(error, OperationType.GET, 'gallery'));
 
+    const salesQ = query(collection(db, 'sales'));
+    const unsubscribeSales = onSnapshot(salesQ, (snapshot) => {
+      const items: Sale[] = [];
+      snapshot.forEach((doc) => items.push({ id: doc.id, ...doc.data() } as Sale));
+      setSales(items);
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'sales'));
+
     return () => {
       unsubscribeAuth();
       unsubscribeMenu();
       unsubscribeGallery();
+      unsubscribeSales();
     };
   }, [navigate]);
 
@@ -300,6 +310,14 @@ export function Admin() {
             }`}
           >
             <SettingsIcon className="w-5 h-5" /> Settings
+          </button>
+          <button
+            onClick={() => { setActiveTab('pos'); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
+              activeTab === 'pos' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Coffee className="w-5 h-5" /> POS & Reports
           </button>
         </nav>
 
@@ -565,6 +583,8 @@ export function Admin() {
                 </form>
               </div>
             </>
+          ) : activeTab === 'pos' ? (
+            <AdminPOS menuItems={menuItems} sales={sales} appName={settings.appName} />
           ) : null}
         </div>
       </div>
