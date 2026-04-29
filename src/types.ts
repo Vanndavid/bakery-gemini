@@ -13,3 +13,17 @@ export interface GalleryImage {
   description?: string;
   imageUrl: string;
 }
+
+export interface SaleItem {
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface Sale {
+  id: string;
+  items: SaleItem[];
+  total: number;
+  createdAt: unknown;
+}
