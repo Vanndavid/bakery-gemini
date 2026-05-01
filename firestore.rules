@@ -40,8 +40,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        (request.auth.token.email == "vanndavidteng@gmail.com" && request.auth.token.email_verified == true) ||
-        request.auth.token.firebase.sign_in_provider == "password"
+        request.auth.token.admin == true ||
+        request.auth.token.email in [
+          "vanndavidteng@gmail.com",
+          "admin@friendlybakers.com"
+        ]
       );
     }
 
@@ -112,7 +115,10 @@ service cloud.firestore {
              request.resource.data.items is list &&
              request.resource.data.items.size() > 0 &&
              isPositive('total') &&
-             request.resource.data.createdAt is timestamp;
+             (
+               request.resource.data.createdAt is timestamp ||
+               request.resource.data.createdAt == request.time
+             );
     }
     function isValidSettings() {
       return hasRequiredFields(['appName', 'colorScheme']) &&

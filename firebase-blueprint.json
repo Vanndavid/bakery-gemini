@@ -26,7 +26,11 @@
           "description": "URL of the menu item image."
         }
       },
-      "required": ["name", "price", "category"]
+      "required": [
+        "name",
+        "price",
+        "category"
+      ]
     },
     "GalleryImage": {
       "title": "Gallery Image",
@@ -46,7 +50,10 @@
           "description": "A description of the image."
         }
       },
-      "required": ["title", "imageUrl"]
+      "required": [
+        "title",
+        "imageUrl"
+      ]
     },
     "Settings": {
       "title": "Settings",
@@ -60,10 +67,42 @@
         "colorScheme": {
           "type": "string",
           "description": "The color scheme of the application.",
-          "enum": ["amber", "rose", "emerald", "slate"]
+          "enum": [
+            "amber",
+            "rose",
+            "emerald",
+            "slate"
+          ]
         }
       },
-      "required": ["appName", "colorScheme"]
+      "required": [
+        "appName",
+        "colorScheme"
+      ]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A completed point-of-sale transaction.",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Line items included in the sale."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total amount charged for the sale."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Server timestamp for when the sale was created."
+        }
+      },
+      "required": [
+        "items",
+        "total",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -84,6 +123,12 @@
         "$ref": "#/entities/GalleryImage"
       },
       "description": "Collection of bakery gallery images."
+    },
+    "/sales/{saleId}": {
+      "schema": {
+        "$ref": "#/entities/Sale"
+      },
+      "description": "Collection of completed sales records."
     }
   }
 }
