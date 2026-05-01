@@ -104,6 +104,16 @@ service cloud.firestore {
       return contacts is list && contacts.size() <= 20;
     }
 
+
+
+    function isValidSale() {
+      return hasRequiredFields(['items', 'total', 'createdAt']) &&
+             hasOnlyAllowedFields(['items', 'total', 'createdAt']) &&
+             request.resource.data.items is list &&
+             request.resource.data.items.size() > 0 &&
+             isPositive('total') &&
+             request.resource.data.createdAt is timestamp;
+    }
     function isValidSettings() {
       return hasRequiredFields(['appName', 'colorScheme']) &&
              hasOnlyAllowedFields(['appName', 'colorScheme', 'contacts', 'heroImage', 'heroTitle', 'heroSubtitle']) &&
@@ -135,6 +145,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+
+
+    match /sales/{saleId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidSale();
+      allow update, delete: if false;
+    }
     match /gallery/{imageId} {
       // Anyone can read the gallery
       allow read: if true;
