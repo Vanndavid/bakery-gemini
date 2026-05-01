@@ -17,6 +17,7 @@ export interface GalleryImage {
 export interface SaleItem {
   menuItemId: string;
   name: string;
+  imageUrl?: string;
   price: number;
   quantity: number;
 }
