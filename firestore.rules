@@ -112,7 +112,10 @@ service cloud.firestore {
              request.resource.data.items is list &&
              request.resource.data.items.size() > 0 &&
              isPositive('total') &&
-             request.resource.data.createdAt is timestamp;
+             (
+               request.resource.data.createdAt is timestamp ||
+               request.resource.data.createdAt == request.time
+             );
     }
     function isValidSettings() {
       return hasRequiredFields(['appName', 'colorScheme']) &&
