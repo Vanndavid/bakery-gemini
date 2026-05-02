@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage, handleFirestoreError, OperationType } from '../firebase';
-import { MenuItem, GalleryImage, Sale } from '../types';
-import { AdminPOS } from '../components/AdminPOS';
+import { MenuItem, GalleryImage } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon, Upload } from 'lucide-react';
+import { Trash2, Edit2, Plus, LogOut, Image as ImageIcon, Coffee, Settings as SettingsIcon, Upload, ShoppingCart, BarChart2 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { POS } from '../components/admin/POS';
+import { Reports } from '../components/admin/Reports';
 
 export function Admin() {
-  const [activeTab, setActiveTab] = useState<'menu' | 'gallery' | 'settings' | 'pos'>('menu');
+  const [activeTab, setActiveTab] = useState<'pos' | 'reports' | 'menu' | 'gallery' | 'settings'>('pos');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
@@ -82,18 +82,10 @@ export function Admin() {
       setGalleryImages(items);
     }, (error) => handleFirestoreError(error, OperationType.GET, 'gallery'));
 
-    const salesQ = query(collection(db, 'sales'));
-    const unsubscribeSales = onSnapshot(salesQ, (snapshot) => {
-      const items: Sale[] = [];
-      snapshot.forEach((doc) => items.push({ id: doc.id, ...doc.data() } as Sale));
-      setSales(items);
-    }, (error) => handleFirestoreError(error, OperationType.GET, 'sales'));
-
     return () => {
       unsubscribeAuth();
       unsubscribeMenu();
       unsubscribeGallery();
-      unsubscribeSales();
     };
   }, [navigate]);
 
@@ -288,6 +280,22 @@ export function Admin() {
         
         <nav className="space-y-2 flex-1">
           <button
+            onClick={() => { setActiveTab('pos'); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
+              activeTab === 'pos' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <ShoppingCart className="w-5 h-5" /> Point of Sale
+          </button>
+          <button
+            onClick={() => { setActiveTab('reports'); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
+              activeTab === 'reports' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BarChart2 className="w-5 h-5" /> Sales Reports
+          </button>
+          <button
             onClick={() => { setActiveTab('menu'); resetMenuForm(); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
               activeTab === 'menu' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
@@ -311,14 +319,6 @@ export function Admin() {
           >
             <SettingsIcon className="w-5 h-5" /> Settings
           </button>
-          <button
-            onClick={() => { setActiveTab('pos'); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${
-              activeTab === 'pos' ? 'bg-primary-100 text-primary-900' : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Coffee className="w-5 h-5" /> POS & Reports
-          </button>
         </nav>
 
         <button
@@ -331,8 +331,12 @@ export function Admin() {
 
       {/* Main Content */}
       <div className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-4xl mx-auto">
-          {activeTab === 'menu' ? (
+        <div className="max-w-6xl mx-auto">
+          {activeTab === 'pos' ? (
+            <POS menuItems={menuItems} />
+          ) : activeTab === 'reports' ? (
+            <Reports />
+          ) : activeTab === 'menu' ? (
             <>
               {/* Menu Form */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
@@ -583,8 +587,6 @@ export function Admin() {
                 </form>
               </div>
             </>
-          ) : activeTab === 'pos' ? (
-            <AdminPOS menuItems={menuItems} sales={sales} appName={settings.appName} />
           ) : null}
         </div>
       </div>

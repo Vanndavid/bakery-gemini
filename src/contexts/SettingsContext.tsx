@@ -31,7 +31,7 @@ const defaultSettings: Settings = {
     { id: '1', type: 'phone', value: '(02) 1234 5678', enabled: true },
     { id: '2', type: 'email', value: 'hello@friendlybakers.com', enabled: true }
   ],
-  heroImage: 'https://firebasestorage.googleapis.com/v0/b/gen-lang-client-0061441297.firebasestorage.app/o/settings%2F1775433743445_Screenshot%202026-04-06%20100203.png?alt=media&token=69d9fb61-bab5-4a4c-aaf0-b61406bf8431',
+  heroImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
   heroTitle: 'Artisan Baking, Crafted with Love',
   heroSubtitle: 'Experience the warmth of freshly baked bread, delicate pastries, and custom cakes made from scratch daily.'
 };

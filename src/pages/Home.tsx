@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, ShoppingBag, Star, Truck } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowRight, Star } from 'lucide-react';
 import { Menu } from './Menu';
 import { Gallery } from './Gallery';
 import { useSettings } from '../contexts/SettingsContext';
@@ -9,11 +9,7 @@ export function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const doorDashUrl =
-    'https://doordash.com/store/the-friendly-bakers-lurnea-2235979/?utm_campaign=gpa&pickup=true&rwg_token=AFd1xnGzWZwz67y685rHR0WGnUfZTJ92s3dA_ZxA1n7auAdtxhphWGhs3T_f7y9yUpO1XgYjfH6qScVUrxBtbSL2kWPVAQGSKQ%3D%3D';
-  const uberEatsUrl =
-    'https://www.ubereats.com/au/store/the-friendly-bakers/W514eC0IXiGjs_t1Y7edeA?diningMode=PICKUP&utm_campaign=CM2508147-search-free-nonbrand-google-pas_e_all_acq_Global&utm_medium=search-free-nonbrand&utm_source=google-pas';
+
   useEffect(() => {
     const target = location.state?.scrollTo;
     if (target) {
@@ -41,12 +37,9 @@ export function Home() {
         <div className="absolute inset-0 z-0">
           <img 
             src={settings.heroImage} 
-            onLoad={() => setIsLoaded(true)}
-            className={`
-              w-full h-full object-cover transition-opacity duration-300
-              ${isLoaded ? 'opacity-80' : 'opacity-0'}
-            `}
-            referrerPolicy="no-referrer" 
+            alt="Hero background" 
+            className="w-full h-full object-cover opacity-80"
+            referrerPolicy="no-referrer"
           />
           <div className="absolute inset-0 bg-black/40"></div>
         </div>
@@ -71,44 +64,6 @@ export function Home() {
             >
               View Gallery
             </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-lg border border-primary-100 p-8 md:p-10">
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-900 text-center mb-8">
-            Order Now
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a
-              href={doorDashUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-red-50 hover:bg-red-100 border border-red-200 rounded-2xl px-6 py-5 transition-colors flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0">
-                <Truck className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-red-700">DoorDash</p>
-                <p className="text-lg font-semibold text-red-900 group-hover:underline">Order Pickup</p>
-              </div>
-            </a>
-            <a
-              href={uberEatsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-green-50 hover:bg-green-100 border border-green-200 rounded-2xl px-6 py-5 transition-colors flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-green-600 text-white flex items-center justify-center shrink-0">
-                <ShoppingBag className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-700">Uber Eats</p>
-                <p className="text-lg font-semibold text-green-900 group-hover:underline">Order Pickup</p>
-              </div>
-            </a>
           </div>
         </div>
       </section>

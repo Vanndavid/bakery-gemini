@@ -15,16 +15,17 @@ export interface GalleryImage {
 }
 
 export interface SaleItem {
-  menuItemId: string;
+  id: string;
   name: string;
-  imageUrl?: string;
   price: number;
   quantity: number;
+  subtotal: number;
 }
 
 export interface Sale {
   id: string;
   items: SaleItem[];
   total: number;
-  createdAt: unknown;
+  timestamp: string; // ISO string
+  userId: string;
 }

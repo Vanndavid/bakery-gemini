@@ -26,11 +26,7 @@
           "description": "URL of the menu item image."
         }
       },
-      "required": [
-        "name",
-        "price",
-        "category"
-      ]
+      "required": ["name", "price", "category"]
     },
     "GalleryImage": {
       "title": "Gallery Image",
@@ -50,10 +46,7 @@
           "description": "A description of the image."
         }
       },
-      "required": [
-        "title",
-        "imageUrl"
-      ]
+      "required": ["title", "imageUrl"]
     },
     "Settings": {
       "title": "Settings",
@@ -67,45 +60,55 @@
         "colorScheme": {
           "type": "string",
           "description": "The color scheme of the application.",
-          "enum": [
-            "amber",
-            "rose",
-            "emerald",
-            "slate"
-          ]
+          "enum": ["amber", "rose", "emerald", "slate"]
         }
       },
-      "required": [
-        "appName",
-        "colorScheme"
-      ]
+      "required": ["appName", "colorScheme"]
     },
     "Sale": {
-      "title": "Sale",
-      "description": "A completed point-of-sale transaction.",
+      "title": "Sale Record",
+      "description": "A record of a completed sale from the POS system.",
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
-          "description": "Line items included in the sale."
+          "description": "The items included in the sale",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "quantity": { "type": "number" },
+              "subtotal": { "type": "number" }
+            },
+            "required": ["id", "name", "price", "quantity", "subtotal"]
+          }
         },
         "total": {
           "type": "number",
-          "description": "Total amount charged for the sale."
+          "description": "Total amount for the sale"
         },
-        "createdAt": {
+        "timestamp": {
           "type": "string",
-          "description": "Server timestamp for when the sale was created."
+          "format": "date-time",
+          "description": "When the sale occurred"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the admin who performed the sale"
         }
       },
-      "required": [
-        "items",
-        "total",
-        "createdAt"
-      ]
+      "required": ["items", "total", "timestamp", "userId"]
     }
   },
   "firestore": {
+    "/sales/{saleId}": {
+      "schema": {
+        "$ref": "#/entities/Sale"
+      },
+      "description": "Collection of sale records."
+    },
     "/settings/{settingId}": {
       "schema": {
         "$ref": "#/entities/Settings"
@@ -123,12 +126,6 @@
         "$ref": "#/entities/GalleryImage"
       },
       "description": "Collection of bakery gallery images."
-    },
-    "/sales/{saleId}": {
-      "schema": {
-        "$ref": "#/entities/Sale"
-      },
-      "description": "Collection of completed sales records."
     }
   }
 }
