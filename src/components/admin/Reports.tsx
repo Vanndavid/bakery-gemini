@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Sale } from '../../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -9,6 +9,9 @@ export function Reports() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isCancellingId, setIsCancellingId] = useState<string | null>(null);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const q = query(collection(db, 'sales'), orderBy('timestamp', 'desc'));
@@ -23,6 +26,30 @@ export function Reports() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(sales.length / itemsPerPage));
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [sales.length, currentPage]);
+
+  const handleCancelTransaction = async (sale: Sale) => {
+    const confirmed = window.confirm(
+      `Cancel this cash transaction from ${format(new Date(sale.timestamp), 'MMM d, yyyy h:mm a')} for $${sale.total.toFixed(2)}?`
+    );
+
+    if (!confirmed) return;
+
+    setIsCancellingId(sale.id);
+    try {
+      await deleteDoc(doc(db, 'sales', sale.id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'sales');
+    } finally {
+      setIsCancellingId(null);
+    }
+  };
 
   const generateChartData = () => {
     const now = new Date();
@@ -77,6 +104,9 @@ export function Reports() {
 
   const chartData = generateChartData();
   const totalPeriodSales = chartData.reduce((sum, data) => sum + data.sales, 0);
+  const totalPages = Math.max(1, Math.ceil(sales.length / itemsPerPage));
+  const pageStart = (currentPage - 1) * itemsPerPage;
+  const paginatedSales = sales.slice(pageStart, pageStart + itemsPerPage);
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Loading reports...</div>;
@@ -136,10 +166,11 @@ export function Reports() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {sales.map((sale) => (
+              {paginatedSales.map((sale) => (
                 <tr key={sale.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {format(new Date(sale.timestamp), 'MMM d, yyyy h:mm a')}
@@ -152,11 +183,20 @@ export function Reports() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                     ${sale.total.toFixed(2)}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <button
+                      onClick={() => handleCancelTransaction(sale)}
+                      disabled={isCancellingId === sale.id}
+                      className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isCancellingId === sale.id ? 'Cancelling...' : 'Cancel'}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {sales.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                     No sales recorded yet.
                   </td>
                 </tr>
@@ -164,6 +204,32 @@ export function Reports() {
             </tbody>
           </table>
         </div>
+        {sales.length > 0 && (
+          <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {pageStart + 1}-{Math.min(pageStart + itemsPerPage, sales.length)} of {sales.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-md hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
