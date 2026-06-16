@@ -1,10 +1,9 @@
 {
-  "projectId": "gen-lang-client-0061441297",
-  "appId": "1:389725029936:web:2c3c57a85e582972514ff5",
-  "apiKey": "AIzaSyAIqfq6-qNzQJasHpm1uEl0YE0JeSjL2jQ",
-  "authDomain": "gen-lang-client-0061441297.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-1c0bcbfe-40ca-415f-87b7-e909f068c92e",
-  "storageBucket": "gen-lang-client-0061441297.firebasestorage.app",
-  "messagingSenderId": "389725029936",
-  "measurementId": ""
+  "projectId": "friendlybakery",
+  "appId": "1:390239638470:web:9f0d9f20c7524ac80258c7",
+  "apiKey": "AIzaSyBJXE5mY6zSJjUvyvFmAsWWJzBuRNhi0x0",
+  "authDomain": "friendlybakery.firebaseapp.com",
+  "storageBucket": "friendlybakery.firebasestorage.app",
+  "messagingSenderId": "390239638470",
+  "measurementId": "G-FEZ5SG6300"
 }

@@ -123,13 +123,17 @@ service cloud.firestore {
 
     function isValidSale() {
       return hasRequiredFields(['items', 'total', 'timestamp', 'userId']) &&
-             hasOnlyAllowedFields(['items', 'total', 'timestamp', 'userId']) &&
+             hasOnlyAllowedFields(['items', 'total', 'timestamp', 'userId', 'status']) &&
              request.resource.data.items is list &&
              request.resource.data.items.size() > 0 &&
              request.resource.data.items.size() <= 100 &&
              isPositive('total') &&
              request.resource.data.timestamp is string &&
-             request.resource.data.userId == request.auth.uid;
+             // In an update, request.resource.data.userId might be the original seller's uid, not necessarily the current admin cancelling it.
+             // But actually, any admin is allowed. Wait, if another admin cancels it, userId == request.auth.uid fails!
+             // So let's just make sure it's a string, we don't need to enforce it == auth.uid on update.
+             request.resource.data.userId is string &&
+             (!('status' in request.resource.data) || request.resource.data.status in ['completed', 'cancelled']);
     }
 
     // ===============================================================
@@ -165,9 +169,8 @@ service cloud.firestore {
       // Only admin can read sales
       allow read: if isAdmin();
       // Only admin can create sales
-      // Cannot update or delete a sale record once created (immutable logs)
-      allow create: if isAdmin() && isValidSale();
-      allow update: if false;
+      allow create: if isAdmin() && isValidSale() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() && isValidSale();
       allow delete: if false;
     }
   }

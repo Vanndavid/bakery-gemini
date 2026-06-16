@@ -28,4 +28,5 @@ export interface Sale {
   total: number;
   timestamp: string; // ISO string
   userId: string;
+  status?: 'completed' | 'cancelled';
 }

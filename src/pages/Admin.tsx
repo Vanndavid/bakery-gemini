@@ -136,10 +136,10 @@ export function Admin() {
     try {
       const data = {
         name: menuForm.name,
+        description: menuForm.description || undefined,
         price: parseFloat(menuForm.price),
         category: menuForm.category,
-        ...(menuForm.description.trim() ? { description: menuForm.description.trim() } : {}),
-        ...(menuForm.imageUrl.trim() ? { imageUrl: menuForm.imageUrl.trim() } : {})
+        imageUrl: menuForm.imageUrl || undefined
       };
 
       if (isEditing && currentId) {
