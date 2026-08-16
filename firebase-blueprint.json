@@ -57,6 +57,10 @@
           "type": "string",
           "description": "The name of the application."
         },
+        "abn": {
+          "type": "string",
+          "description": "Australian Business Number shown on receipts."
+        },
         "colorScheme": {
           "type": "string",
           "description": "The color scheme of the application.",
@@ -97,6 +101,14 @@
         "userId": {
           "type": "string",
           "description": "The ID of the admin who performed the sale"
+        },
+        "cashTendered": {
+          "type": "number",
+          "description": "Cash amount received from the customer"
+        },
+        "changeDue": {
+          "type": "number",
+          "description": "Change to return (cash tendered minus total)"
         }
       },
       "required": ["items", "total", "timestamp", "userId"]

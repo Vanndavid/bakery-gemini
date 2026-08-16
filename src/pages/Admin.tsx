@@ -30,7 +30,8 @@ export function Admin() {
 
   // Settings Form
   const [settingsForm, setSettingsForm] = useState({ 
-    appName: settings.appName, 
+    appName: settings.appName,
+    abn: settings.abn || '',
     colorScheme: settings.colorScheme,
     contacts: settings.contacts || [],
     heroImage: settings.heroImage || '',
@@ -41,7 +42,8 @@ export function Admin() {
   // Update settings form when settings load
   useEffect(() => {
     setSettingsForm({ 
-      appName: settings.appName, 
+      appName: settings.appName,
+      abn: settings.abn || '',
       colorScheme: settings.colorScheme,
       contacts: settings.contacts || [],
       heroImage: settings.heroImage || '',
@@ -178,6 +180,7 @@ export function Admin() {
     try {
       await updateSettings({
         appName: settingsForm.appName,
+        abn: settingsForm.abn,
         colorScheme: settingsForm.colorScheme as any,
         contacts: settingsForm.contacts,
         heroImage: settingsForm.heroImage,
@@ -489,6 +492,10 @@ export function Admin() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Bakery Name *</label>
                       <input required type="text" value={settingsForm.appName} onChange={e => setSettingsForm({...settingsForm, appName: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ABN</label>
+                      <input type="text" value={settingsForm.abn} onChange={e => setSettingsForm({...settingsForm, abn: e.target.value})} className="w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500" placeholder="e.g. 60 685 800 41" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Color Scheme *</label>

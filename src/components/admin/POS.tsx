@@ -1,20 +1,45 @@
 import React, { useState } from 'react';
-import { MenuItem, SaleItem } from '../../types';
+import { MenuItem, Sale, SaleItem } from '../../types';
 import { db, handleFirestoreError, OperationType, auth } from '../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ShoppingCart, Plus, Minus, Trash2, Printer, Check, CreditCard, Expand, Shrink } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Printer, Check, Banknote, Expand, Shrink } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext';
 
 interface POSProps {
   menuItems: MenuItem[];
 }
 
+function parseCashAmount(value: string): number | null {
+  const parsed = parseFloat(value.replace(/[^0-9.]/g, ''));
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parseFloat(parsed.toFixed(2));
+}
+
+function formatMoney(amount: number): string {
+  return `$${amount.toFixed(2)}`;
+}
+
+function formatReceiptDate(iso: string): string {
+  return new Date(iso).toLocaleString('en-AU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+
 export function POS({ menuItems }: POSProps) {
+  const { settings } = useSettings();
   const [cart, setCart] = useState<SaleItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [completedSale, setCompletedSale] = useState<any | null>(null);
+  const [completedSale, setCompletedSale] = useState<(Omit<Sale, 'id'> & { id?: string }) | null>(null);
   const [posCategory, setPosCategory] = useState<'All' | 'Food' | 'Drinks'>('All');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gridSize, setGridSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [cashInput, setCashInput] = useState('');
 
   const filteredItems = menuItems.filter(item => {
     if (posCategory === 'All') return true;
@@ -23,7 +48,10 @@ export function POS({ menuItems }: POSProps) {
   });
 
   const addToCart = (item: MenuItem) => {
-    if (completedSale) setCompletedSale(null);
+    if (completedSale) {
+      setCompletedSale(null);
+      setCashInput('');
+    }
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -53,23 +81,32 @@ export function POS({ menuItems }: POSProps) {
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+  const cashTendered = parseCashAmount(cashInput);
+  const changeDue =
+    cashTendered !== null && cart.length > 0
+      ? parseFloat((cashTendered - cartTotal).toFixed(2))
+      : null;
+  const canCheckout = cart.length > 0 && cashTendered !== null && cashTendered >= cartTotal;
 
   const handleCheckout = async () => {
-    if (cart.length === 0) return;
+    if (!canCheckout || cashTendered === null || changeDue === null) return;
     setIsProcessing(true);
     
     try {
-      const saleData = {
+      const saleData: Omit<Sale, 'id'> = {
         items: cart,
         total: parseFloat(cartTotal.toFixed(2)),
         timestamp: new Date().toISOString(),
-        userId: auth.currentUser?.uid || 'unknown'
+        userId: auth.currentUser?.uid || 'unknown',
+        cashTendered,
+        changeDue
       };
 
       await addDoc(collection(db, 'sales'), saleData);
       
       setCompletedSale(saleData);
       setCart([]);
+      setCashInput('');
     } catch (error) {
        handleFirestoreError(error, OperationType.CREATE, 'sales');
     } finally {
@@ -77,47 +114,92 @@ export function POS({ menuItems }: POSProps) {
     }
   };
 
-  const printReceipt = (saleData: any) => {
+  const printReceipt = (saleData: Omit<Sale, 'id'> & { id?: string }) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    
+
+    const bakeryName = (settings.appName || 'The Friendly Bakers').toUpperCase();
+    const abn = settings.abn?.trim();
+    const cashValue = saleData.cashTendered ?? '';
+    const totalValue = saleData.total.toFixed(2);
+
     const html = `
       <html>
         <head>
           <title>Receipt</title>
           <style>
-            body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-            h2 { text-align: center; }
-            .item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; color: #000; }
+            h1 { text-align: center; font-size: 1.05em; margin: 0 0 4px; letter-spacing: 0.04em; }
+            h2 { text-align: center; font-size: 1.15em; margin: 0 0 6px; }
+            .abn { text-align: center; font-size: 0.85em; margin-bottom: 4px; }
+            .item { display: flex; justify-content: space-between; margin-bottom: 5px; gap: 8px; }
             .total { font-weight: bold; font-size: 1.2em; border-top: 1px dashed #000; padding-top: 10px; margin-top: 10px; text-align: right; }
             .date { text-align: center; color: #666; font-size: 0.8em; margin-bottom: 20px; }
+            .payment { margin-top: 16px; }
+            .pay-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 1em; }
+            .cash-label { display: inline-block; border: 2px solid #000; padding: 2px 10px; font-weight: bold; letter-spacing: 0.06em; }
+            .cash-input { font-family: monospace; font-size: 1em; border: none; border-bottom: 1px solid #000; width: 90px; padding: 2px 0; outline: none; }
+            .thanks { text-align: center; margin-top: 24px; font-size: 0.8em; }
+            .print-btn { display: block; width: 100%; margin-top: 20px; padding: 8px; font-family: monospace; cursor: pointer; }
+            @media print {
+              .print-btn { display: none; }
+              .cash-input { border: none; }
+            }
           </style>
         </head>
         <body>
+          <h1>${bakeryName}</h1>
           <h2>BAKERY RECEIPT</h2>
-          <div class="date">${new Date(saleData.timestamp).toLocaleString()}</div>
+          ${abn ? `<div class="abn">ABN: ${abn}</div>` : ''}
+          <div class="date">${formatReceiptDate(saleData.timestamp)}</div>
           <div class="items">
-            ${saleData.items.map((item: any) => `
+            ${saleData.items.map((item) => `
               <div class="item">
                 <span>${item.quantity}x ${item.name}</span>
-                <span>$${item.subtotal.toFixed(2)}</span>
+                <span>${formatMoney(item.subtotal)}</span>
               </div>
             `).join('')}
           </div>
           <div class="total">
-            TOTAL: $${saleData.total.toFixed(2)}
+            TOTAL: ${formatMoney(saleData.total)}
           </div>
-          <div style="text-align: center; margin-top: 30px; font-size: 0.8em;">Thank you for your visit!</div>
+          <div class="payment">
+            <div class="pay-row">
+              <span class="cash-label">CASH</span>
+              <label>: $
+                <input id="cash" class="cash-input" type="number" min="0" step="0.01" value="${cashValue}" />
+              </label>
+            </div>
+            <div class="pay-row">
+              <span>change :</span>
+              <span id="change">${formatMoney(saleData.changeDue ?? 0)}</span>
+            </div>
+          </div>
+          <div class="thanks">Thank you for your visit!</div>
+          <button class="print-btn" onclick="window.print()">Print</button>
+          <script>
+            const total = ${totalValue};
+            const cashInput = document.getElementById('cash');
+            const changeEl = document.getElementById('change');
+            function updateChange() {
+              const cash = parseFloat(cashInput.value);
+              const change = (Number.isFinite(cash) ? cash : 0) - total;
+              changeEl.textContent = '$' + change.toFixed(2);
+            }
+            cashInput.addEventListener('input', updateChange);
+            cashInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') window.print();
+            });
+            updateChange();
+            cashInput.focus();
+            cashInput.select();
+          </script>
         </body>
       </html>
     `;
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
   };
 
   return (
@@ -219,7 +301,13 @@ export function POS({ menuItems }: POSProps) {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Sale Completed!</h3>
-                <p className="text-gray-500">Total: ${completedSale.total.toFixed(2)}</p>
+                <p className="text-gray-500">Total: {formatMoney(completedSale.total)}</p>
+                {completedSale.cashTendered !== undefined && (
+                  <div className="mt-3 text-sm text-gray-600 space-y-1">
+                    <p>Cash: {formatMoney(completedSale.cashTendered)}</p>
+                    <p>Change: {formatMoney(completedSale.changeDue ?? 0)}</p>
+                  </div>
+                )}
               </div>
               <div className="space-y-3 w-full px-8">
                 <button
@@ -230,7 +318,10 @@ export function POS({ menuItems }: POSProps) {
                   Print Receipt
                 </button>
                 <button
-                  onClick={() => setCompletedSale(null)}
+                  onClick={() => {
+                    setCompletedSale(null);
+                    setCashInput('');
+                  }}
                   className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                   New Order
@@ -277,14 +368,45 @@ export function POS({ menuItems }: POSProps) {
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600 font-medium">Total</span>
-              <span className="text-2xl font-bold text-gray-900">${cartTotal.toFixed(2)}</span>
+              <span className="text-2xl font-bold text-gray-900">{formatMoney(cartTotal)}</span>
+            </div>
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="inline-block border-2 border-gray-900 px-3 py-1 font-bold tracking-wide text-sm">
+                  CASH
+                </span>
+                <span className="text-gray-700 font-medium">:</span>
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={cashInput}
+                    onChange={(e) => setCashInput(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 font-medium"
+                    aria-label="Cash received"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-gray-700">
+                <span>change :</span>
+                <span className={`font-semibold ${changeDue !== null && changeDue < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                  {changeDue === null ? '—' : formatMoney(changeDue)}
+                </span>
+              </div>
+              {cashTendered !== null && cashTendered < cartTotal && cart.length > 0 && (
+                <p className="text-xs text-red-600">Cash received is less than the total.</p>
+              )}
             </div>
             <button 
               onClick={handleCheckout}
-              disabled={cart.length === 0 || isProcessing}
+              disabled={!canCheckout || isProcessing}
               className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-colors"
             >
-              <CreditCard className="w-5 h-5" />
+              <Banknote className="w-5 h-5" />
               {isProcessing ? 'Processing...' : 'Checkout'}
             </button>
           </div>
