@@ -11,6 +11,7 @@ export interface ContactInfo {
 
 interface Settings {
   appName: string;
+  abn: string;
   colorScheme: 'amber' | 'rose' | 'emerald' | 'slate';
   contacts: ContactInfo[];
   heroImage: string;
@@ -26,6 +27,7 @@ interface SettingsContextType {
 
 const defaultSettings: Settings = {
   appName: 'The Friendly Bakers',
+  abn: '60 685 800 41',
   colorScheme: 'amber',
   contacts: [
     { id: '1', type: 'phone', value: '(02) 1234 5678', enabled: true },
@@ -51,6 +53,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           setSettings({
             ...defaultSettings,
             ...data,
+            abn: data.abn ?? defaultSettings.abn,
             contacts: data.contacts || defaultSettings.contacts
           });
         } else {
