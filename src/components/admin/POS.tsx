@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { MenuItem, Sale, SaleItem } from '../../types';
+import { MenuItem, PaymentMethod, Sale, SaleItem } from '../../types';
 import { db, handleFirestoreError, OperationType, auth } from '../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ShoppingCart, Plus, Minus, Trash2, Printer, Check, Banknote, Expand, Shrink } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Printer, Check, Banknote, CreditCard, Expand, Shrink } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext';
 
 interface POSProps {
@@ -40,6 +40,7 @@ export function POS({ menuItems }: POSProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [gridSize, setGridSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [cashInput, setCashInput] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
 
   const filteredItems = menuItems.filter(item => {
     if (posCategory === 'All') return true;
@@ -83,13 +84,16 @@ export function POS({ menuItems }: POSProps) {
   const cartTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
   const cashTendered = parseCashAmount(cashInput);
   const changeDue =
-    cashTendered !== null && cart.length > 0
+    paymentMethod === 'cash' && cashTendered !== null && cart.length > 0
       ? parseFloat((cashTendered - cartTotal).toFixed(2))
       : null;
-  const canCheckout = cart.length > 0 && cashTendered !== null && cashTendered >= cartTotal;
+  const canCheckout =
+    cart.length > 0 &&
+    (paymentMethod === 'card' || (cashTendered !== null && cashTendered >= cartTotal));
 
   const handleCheckout = async () => {
-    if (!canCheckout || cashTendered === null || changeDue === null) return;
+    if (!canCheckout) return;
+    if (paymentMethod === 'cash' && (cashTendered === null || changeDue === null)) return;
     setIsProcessing(true);
     
     try {
@@ -98,8 +102,10 @@ export function POS({ menuItems }: POSProps) {
         total: parseFloat(cartTotal.toFixed(2)),
         timestamp: new Date().toISOString(),
         userId: auth.currentUser?.uid || 'unknown',
-        cashTendered,
-        changeDue
+        paymentMethod,
+        ...(paymentMethod === 'cash' && cashTendered !== null && changeDue !== null
+          ? { cashTendered, changeDue }
+          : {})
       };
 
       await addDoc(collection(db, 'sales'), saleData);
@@ -120,8 +126,51 @@ export function POS({ menuItems }: POSProps) {
 
     const bakeryName = (settings.appName || 'The Friendly Bakers').toUpperCase();
     const abn = settings.abn?.trim();
+    const isCash = saleData.paymentMethod === 'cash' || (!saleData.paymentMethod && saleData.cashTendered !== undefined);
+    const isCard = saleData.paymentMethod === 'card';
     const cashValue = saleData.cashTendered ?? '';
     const totalValue = saleData.total.toFixed(2);
+
+    const paymentHtml = isCash
+      ? `
+          <div class="payment">
+            <div class="pay-row">
+              <span class="pay-label">CASH</span>
+              <label>: $
+                <input id="cash" class="cash-input" type="number" min="0" step="0.01" value="${cashValue}" />
+              </label>
+            </div>
+            <div class="pay-row">
+              <span>change :</span>
+              <span id="change">${formatMoney(saleData.changeDue ?? 0)}</span>
+            </div>
+          </div>
+          <script>
+            const total = ${totalValue};
+            const cashInput = document.getElementById('cash');
+            const changeEl = document.getElementById('change');
+            function updateChange() {
+              const cash = parseFloat(cashInput.value);
+              const change = (Number.isFinite(cash) ? cash : 0) - total;
+              changeEl.textContent = '$' + change.toFixed(2);
+            }
+            cashInput.addEventListener('input', updateChange);
+            cashInput.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') window.print();
+            });
+            updateChange();
+            cashInput.focus();
+            cashInput.select();
+          </script>`
+      : isCard
+      ? `
+          <div class="payment">
+            <div class="pay-row">
+              <span class="pay-label">CARD</span>
+              <span>: ${formatMoney(saleData.total)}</span>
+            </div>
+          </div>`
+      : '';
 
     const html = `
       <html>
@@ -137,7 +186,7 @@ export function POS({ menuItems }: POSProps) {
             .date { text-align: center; color: #666; font-size: 0.8em; margin-bottom: 20px; }
             .payment { margin-top: 16px; }
             .pay-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 1em; }
-            .cash-label { display: inline-block; border: 2px solid #000; padding: 2px 10px; font-weight: bold; letter-spacing: 0.06em; }
+            .pay-label { display: inline-block; border: 2px solid #000; padding: 2px 10px; font-weight: bold; letter-spacing: 0.06em; }
             .cash-input { font-family: monospace; font-size: 1em; border: none; border-bottom: 1px solid #000; width: 90px; padding: 2px 0; outline: none; }
             .thanks { text-align: center; margin-top: 24px; font-size: 0.8em; }
             .print-btn { display: block; width: 100%; margin-top: 20px; padding: 8px; font-family: monospace; cursor: pointer; }
@@ -163,37 +212,9 @@ export function POS({ menuItems }: POSProps) {
           <div class="total">
             TOTAL: ${formatMoney(saleData.total)}
           </div>
-          <div class="payment">
-            <div class="pay-row">
-              <span class="cash-label">CASH</span>
-              <label>: $
-                <input id="cash" class="cash-input" type="number" min="0" step="0.01" value="${cashValue}" />
-              </label>
-            </div>
-            <div class="pay-row">
-              <span>change :</span>
-              <span id="change">${formatMoney(saleData.changeDue ?? 0)}</span>
-            </div>
-          </div>
+          ${paymentHtml}
           <div class="thanks">Thank you for your visit!</div>
           <button class="print-btn" onclick="window.print()">Print</button>
-          <script>
-            const total = ${totalValue};
-            const cashInput = document.getElementById('cash');
-            const changeEl = document.getElementById('change');
-            function updateChange() {
-              const cash = parseFloat(cashInput.value);
-              const change = (Number.isFinite(cash) ? cash : 0) - total;
-              changeEl.textContent = '$' + change.toFixed(2);
-            }
-            cashInput.addEventListener('input', updateChange);
-            cashInput.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter') window.print();
-            });
-            updateChange();
-            cashInput.focus();
-            cashInput.select();
-          </script>
         </body>
       </html>
     `;
@@ -302,7 +323,10 @@ export function POS({ menuItems }: POSProps) {
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Sale Completed!</h3>
                 <p className="text-gray-500">Total: {formatMoney(completedSale.total)}</p>
-                {completedSale.cashTendered !== undefined && (
+                {completedSale.paymentMethod === 'card' && (
+                  <p className="mt-3 text-sm text-gray-600">Paid by card</p>
+                )}
+                {completedSale.paymentMethod !== 'card' && completedSale.cashTendered !== undefined && (
                   <div className="mt-3 text-sm text-gray-600 space-y-1">
                     <p>Cash: {formatMoney(completedSale.cashTendered)}</p>
                     <p>Change: {formatMoney(completedSale.changeDue ?? 0)}</p>
@@ -370,43 +394,71 @@ export function POS({ menuItems }: POSProps) {
               <span className="text-gray-600 font-medium">Total</span>
               <span className="text-2xl font-bold text-gray-900">{formatMoney(cartTotal)}</span>
             </div>
-            <div className="mb-4 space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="inline-block border-2 border-gray-900 px-3 py-1 font-bold tracking-wide text-sm">
-                  CASH
-                </span>
-                <span className="text-gray-700 font-medium">:</span>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={cashInput}
-                    onChange={(e) => setCashInput(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 font-medium"
-                    aria-label="Cash received"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-gray-700">
-                <span>change :</span>
-                <span className={`font-semibold ${changeDue !== null && changeDue < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                  {changeDue === null ? '—' : formatMoney(changeDue)}
-                </span>
-              </div>
-              {cashTendered !== null && cashTendered < cartTotal && cart.length > 0 && (
-                <p className="text-xs text-red-600">Cash received is less than the total.</p>
-              )}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('cash')}
+                className={`py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+                  paymentMethod === 'cash'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <Banknote className="w-4 h-4" />
+                Cash
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('card')}
+                className={`py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+                  paymentMethod === 'card'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <CreditCard className="w-4 h-4" />
+                Card
+              </button>
             </div>
+            {paymentMethod === 'cash' && (
+              <div className="mb-4 space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="inline-block border-2 border-gray-900 px-3 py-1 font-bold tracking-wide text-sm">
+                    CASH
+                  </span>
+                  <span className="text-gray-700 font-medium">:</span>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      value={cashInput}
+                      onChange={(e) => setCashInput(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 font-medium"
+                      aria-label="Cash received"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-gray-700">
+                  <span>change :</span>
+                  <span className={`font-semibold ${changeDue !== null && changeDue < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                    {changeDue === null ? '—' : formatMoney(changeDue)}
+                  </span>
+                </div>
+                {cashTendered !== null && cashTendered < cartTotal && cart.length > 0 && (
+                  <p className="text-xs text-red-600">Cash received is less than the total.</p>
+                )}
+              </div>
+            )}
             <button 
               onClick={handleCheckout}
               disabled={!canCheckout || isProcessing}
               className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-colors"
             >
-              <Banknote className="w-5 h-5" />
+              {paymentMethod === 'card' ? <CreditCard className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
               {isProcessing ? 'Processing...' : 'Checkout'}
             </button>
           </div>

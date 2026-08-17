@@ -22,6 +22,8 @@ export interface SaleItem {
   subtotal: number;
 }
 
+export type PaymentMethod = 'cash' | 'card';
+
 export interface Sale {
   id: string;
   items: SaleItem[];
@@ -29,6 +31,7 @@ export interface Sale {
   timestamp: string; // ISO string
   userId: string;
   status?: 'completed' | 'cancelled';
+  paymentMethod?: PaymentMethod;
   cashTendered?: number;
   changeDue?: number;
 }

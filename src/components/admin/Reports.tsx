@@ -144,6 +144,7 @@ export function Reports() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -170,6 +171,9 @@ export function Reports() {
                       </span>
                     )}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 capitalize">
+                    {sale.paymentMethod || '—'}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                     ${sale.total.toFixed(2)}
                   </td>
@@ -187,7 +191,7 @@ export function Reports() {
               ))}
               {sales.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                     No sales recorded yet.
                   </td>
                 </tr>
