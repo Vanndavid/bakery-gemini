@@ -102,9 +102,14 @@
           "type": "string",
           "description": "The ID of the admin who performed the sale"
         },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["cash", "card"],
+          "description": "How the customer paid"
+        },
         "cashTendered": {
           "type": "number",
-          "description": "Cash amount received from the customer"
+          "description": "Cash amount received from the customer (cash payments only)"
         },
         "changeDue": {
           "type": "number",
