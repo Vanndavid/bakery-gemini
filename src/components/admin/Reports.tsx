@@ -3,9 +3,13 @@ import { collection, query, onSnapshot, orderBy, updateDoc, doc } from 'firebase
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { Sale } from '../../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, eachWeekOfInterval, startOfYear, endOfYear, eachMonthOfInterval, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval, isSameDay, isSameMonth } from 'date-fns';
+import { Printer } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext';
+import { printReceipt } from '../../utils/printReceipt';
 
 export function Reports() {
+  const { settings } = useSettings();
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
@@ -178,14 +182,26 @@ export function Reports() {
                     ${sale.total.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {sale.status !== 'cancelled' && (
+                    <div className="flex items-center justify-end gap-3">
                       <button
-                        onClick={() => handleCancelSale(sale.id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
+                        type="button"
+                        onClick={() => printReceipt(sale, { appName: settings.appName, abn: settings.abn })}
+                        className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-900 transition-colors"
+                        title="Print Receipt"
                       >
-                        Cancel
+                        <Printer className="w-4 h-4" />
+                        Print
                       </button>
-                    )}
+                      {sale.status !== 'cancelled' && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelSale(sale.id)}
+                          className="text-red-600 hover:text-red-900 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
